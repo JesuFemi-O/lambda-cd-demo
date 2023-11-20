@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - zikke-demo-trigger/*
+      - zikkie-demo-trigger/*
 
 jobs:
   deploy:
