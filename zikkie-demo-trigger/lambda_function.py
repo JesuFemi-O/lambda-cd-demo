@@ -11,5 +11,5 @@ def lambda_handler(event, context):
     print(f"Make API call to orchestrator asking it to process file {key} from bucket {bucket}")
     return {
         'statusCode': 200,
-        'body': json.dumps('Hello from Lambda!')
+        'body': json.dumps('Successfully submitted job to Orchestrator!')
     }
