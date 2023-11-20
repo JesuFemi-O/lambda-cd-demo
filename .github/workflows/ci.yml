@@ -16,6 +16,11 @@ jobs:
           with:
             python-version: 3.11
         
+        - name: Set up Node.js
+          uses: actions/setup-node@v3
+          with:
+            node-version: '14'
+        
         - name: Install dependencies
           run: |
             python -m pip install --upgrade pip
@@ -30,8 +35,7 @@ jobs:
           id: convert-diff
           run: |
             if [ -s annotations/black_changes.diff ]; then
-                python -m pip install diff2html-cli
-                diff2html -i file -s line -F annotations/black_changes.diff -o annotations/black_changes.html
+                npx diff2html -s line-by-line -F annotations/black_changes.diff -o annotations/black_changes.html
             fi
         
         - name: Annotate Pull Request
