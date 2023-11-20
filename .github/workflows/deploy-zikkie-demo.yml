@@ -21,4 +21,5 @@ jobs:
 
         - name: Deploy lambda definitions
           run: |
+            chmod +x deploy.sh
             ./deploy.sh zikke-demo-trigger
