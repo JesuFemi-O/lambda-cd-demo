@@ -40,35 +40,25 @@ jobs:
           echo "BLACK_OUTPUT=${black_output}"
           echo "ISORT_OUTPUT=${isort_output}"
 
-          # Store lint outputs as environment variables
-          echo "FLAKE8_OUTPUT=${lint_output}" >> $GITHUB_ENV
-          echo "BLACK_OUTPUT=${black_output}" >> $GITHUB_ENV
-          echo "ISORT_OUTPUT=${isort_output}" >> $GITHUB_ENV
-      
-      - name: Generate annotations
-        if: ${{ steps.filter.outputs.py_scripts_filter == 'true' }}
-        run: |
-          # Check if there are linting errors and create annotations
-
           # FLAKE8 linting
-          if [ -n "${FLAKE8_OUTPUT}" ]; then
-            lint_output_lines="${FLAKE8_OUTPUT}"
+          if [ -n "${lint_output}" ]; then
+            lint_output_lines="${lint_output}"
             echo "::error file=${{ steps.filter.outputs.py_scripts_filter_files }}::${lint_output_lines}"
           fi
 
           # BLACK linting
-          if [ -n "${BLACK_OUTPUT}" ]; then
-            black_output_lines="${BLACK_OUTPUT}"
+          if [ -n "${black_output}" ]; then
+            black_output_lines="${black_output}"
             echo "::error file=${{ steps.filter.outputs.py_scripts_filter_files }}::${black_output_lines}"
           fi
 
           # ISORT linting
-          if [ -n "${ISORT_OUTPUT}" ]; then
-            isort_output_lines="${ISORT_OUTPUT}"
+          if [ -n "${isort_output}" ]; then
+            isort_output_lines="${isort_output}"
             echo "::error file=${{ steps.filter.outputs.py_scripts_filter_files }}::${isort_output_lines}"
           fi
 
           # Fail the job if there are any errors
-          if [ -n "${FLAKE8_OUTPUT}" ] || [ -n "${BLACK_OUTPUT}" ] || [ -n "${ISORT_OUTPUT}" ]; then
+          if [ -n "${lint_output}" ] || [ -n "${black_output}" ] || [ -n "${isort_output}" ]; then
             exit 1
           fi
