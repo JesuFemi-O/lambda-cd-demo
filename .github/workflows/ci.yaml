@@ -31,9 +31,9 @@ jobs:
         if: ${{ steps.filter.outputs.py_scripts_filter == 'true' }}
         run: |
           echo "Changed python files: ${{ steps.filter.outputs.py_scripts_filter_files }}"
-          lint_output=$(python -m flakeheaven lint zikkie-demo-trigger/lambda_function.py 2>&1) || true
-          black_output=$(python -m black --check zikkie-demo-trigger/lambda_function.py 2>&1) || true
-          isort_output=$(python -m isort --check zikkie-demo-trigger/lambda_function.py 2>&1) || true
+          lint_output_formatted=$(echo "${lint_output}" | jq -s -R @csv)
+          black_output_formatted=$(echo "${black_output}" | jq -s -R @csv)
+          isort_output_formatted=$(echo "${isort_output}" | jq -s -R @csv)
 
           # Debugging: Print linting outputs
           echo "FLAKE8_OUTPUT=${lint_output}"
@@ -49,20 +49,14 @@ jobs:
         if: ${{ steps.filter.outputs.py_scripts_filter == 'true' }}
         run: |
           # Check if there are linting errors and create annotations
-          if [ -n "${{ env.FLAKE8_OUTPUT }}" ]; then
-            echo "${{ env.FLAKE8_OUTPUT }}" | while read -r line; do
-              IFS=: read -r filename lineno colno error <<<"$line"
-              echo "::error file=${filename},line=${lineno},col=${colno}::${error}"
-            done
-          fi
-
-          if [ -n "${{ env.BLACK_OUTPUT }}" ]; then
-            echo "::error file=::${{ env.BLACK_OUTPUT }}"
-          fi
-
-          if [ -n "${{ env.ISORT_OUTPUT }}" ]; then
-            echo "::error file=::${{ env.ISORT_OUTPUT }}"
-          fi
+          for lint_var in FLAKE8_OUTPUT BLACK_OUTPUT ISORT_OUTPUT; do
+            lint_output="${{ env[${lint_var}] }}"
+            if [ -n "$lint_output" ]; then
+              # Convert CSV to multiline format for annotation
+              lint_output_lines=$(echo "$lint_output" | jq -r -c '. | split(",") | join("\n")')
+              echo "::error file=${{ steps.filter.outputs.py_scripts_filter_files }}::${lint_output_lines}"
+            fi
+          done
 
           # Fail the job if there are any errors
           if [ -n "${{ env.FLAKE8_OUTPUT }}" ] || [ -n "${{ env.BLACK_OUTPUT }}" ] || [ -n "${{ env.ISORT_OUTPUT }}" ]; then
