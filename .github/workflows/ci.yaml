@@ -31,6 +31,35 @@ jobs:
         if: ${{ steps.filter.outputs.py_scripts_filter == 'true' }}
         run: |
           echo "Changed python files: ${{ steps.filter.outputs.py_scripts_filter_files }}"
-          python -m flakeheaven lint ${{ steps.filter.outputs.py_scripts_filter_files }}
-          python -m black --check ${{ steps.filter.outputs.py_scripts_filter_files }}
-          python -m isort --check ${{ steps.filter.outputs.py_scripts_filter_files }}
+          lint_output=$(python -m flakeheaven lint ${{ steps.filter.outputs.py_scripts_filter_files }} 2>&1)
+          black_output=$(python -m black --check ${{ steps.filter.outputs.py_scripts_filter_files }} 2>&1)
+          isort_output=$(python -m isort --check ${{ steps.filter.outputs.py_scripts_filter_files }} 2>&1)
+
+          # Store lint outputs as environment variables
+          echo "::set-env name=FLAKE8_OUTPUT::${lint_output}"
+          echo "::set-env name=BLACK_OUTPUT::${black_output}"
+          echo "::set-env name=ISORT_OUTPUT::${isort_output}"
+      
+      - name: Generate annotations
+        if: ${{ steps.filter.outputs.py_scripts_filter == 'true' }}
+        run: |
+          # Check if there are linting errors and create annotations
+          if [ -n "${{ env.FLAKE8_OUTPUT }}" ]; then
+            echo "${{ env.FLAKE8_OUTPUT }}" | while read -r line; do
+              IFS=: read -r filename lineno colno error <<<"$line"
+              echo "::error file=${filename},line=${lineno},col=${colno}::${error}"
+            done
+          fi
+
+          if [ -n "${{ env.BLACK_OUTPUT }}" ]; then
+            echo "::error file=::${{ env.BLACK_OUTPUT }}"
+          fi
+
+          if [ -n "${{ env.ISORT_OUTPUT }}" ]; then
+            echo "::error file=::${{ env.ISORT_OUTPUT }}"
+          fi
+
+          # Fail the job if there are any errors
+          if [ -n "${{ env.FLAKE8_OUTPUT }}" ] || [ -n "${{ env.BLACK_OUTPUT }}" ] || [ -n "${{ env.ISORT_OUTPUT }}" ]; then
+            exit 1
+          fi
