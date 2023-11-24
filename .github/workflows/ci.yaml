@@ -24,12 +24,12 @@ jobs:
 
     - name: Get modified files
       id: get_files
-      run: echo "::set-output name=files::$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '\.py$' || true)"
+      run: echo "files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '\.py$' || true)" >> $GITHUB_ENV
     
     - name: Lint with Black
       run: |
-        if [ -n "${{ steps.get_files.outputs.files }}" ]; then
-          black --check ${{ steps.get_files.outputs.files }}
+        if [ -n "$files" ]; then
+          black --check $files
         else
           echo "No Python files modified."
         fi
@@ -39,7 +39,7 @@ jobs:
     - name: Generate annotations
       if: ${{ failure() }}
       run: |
-        if [ -n "${{ steps.get_files.outputs.files }}" ]; then
+        if [ -n "$files" ]; then
           while IFS= read -r file; do
             errors=$(black --check "$file" | awk -F ":" '{print $3":"$4}')
             IFS=$'\n' read -rd '' -a errors_array <<<"$errors"
