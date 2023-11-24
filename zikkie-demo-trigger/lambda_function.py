@@ -1,4 +1,5 @@
 import json
+import requests
 import urllib.parse
 
 def lambda_handler(event, context):

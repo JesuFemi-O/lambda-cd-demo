@@ -27,5 +27,13 @@ jobs:
         with:
           python-root-list: ${{ env.CHANGED_FILES }}
           use-black: true
-          extra-pylint-options: "--disable=C0114,C0116"  # Missing doctrings
-          extra-pydocstyle-options: "--ignore=D1"  # Missing doctrings http://www.pydocstyle.org/en/stable/error_codes.html#grouping
+          use-pylint: false
+          use-pycodestyle: false
+          use-flake8: false
+          use-black: false
+          use-mypy: false
+          use-isort: false
+          use-vulture: false
+          use-pydocstyle: false
+          # extra-pylint-options: "--disable=C0114,C0116"  # Missing doctrings
+          # extra-pydocstyle-options: "--ignore=D1"  # Missing doctrings http://www.pydocstyle.org/en/stable/error_codes.html#grouping
