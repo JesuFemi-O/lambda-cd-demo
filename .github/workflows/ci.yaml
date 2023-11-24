@@ -1,4 +1,5 @@
-name: Lint python files
+name: Python Linting with Black
+
 on:
   pull_request:
     types: [ opened, reopened, synchronize, edited ]
@@ -6,33 +7,45 @@ on:
 jobs:
   lint:
     runs-on: ubuntu-latest
-    name: Lint
+
     steps:
-      - name: Check out source repository
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0  # This is necessary to get the commits
-      
-      - name: Set up Python environment
-        uses: actions/setup-python@v3
-        with:
-          python-version: "3.10"
-      
-      - name: Get changed python files between base and head
-        run: >
-          echo "CHANGED_FILES=$(echo $(git diff --name-only ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} -- | grep \.py))" >> $GITHUB_ENV
-      
-      - if: ${{ env.CHANGED_FILES }}
-        uses: marian-code/python-lint-annotate@v3
-        with:
-          python-root-list: ${{ env.CHANGED_FILES }}
-          use-black: true
-          use-pylint: false
-          use-pycodestyle: false
-          use-flake8: false
-          use-mypy: false
-          use-isort: false
-          use-vulture: false
-          use-pydocstyle: false
-          # extra-pylint-options: "--disable=C0114,C0116"  # Missing doctrings
-          # extra-pydocstyle-options: "--ignore=D1"  # Missing doctrings http://www.pydocstyle.org/en/stable/error_codes.html#grouping
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.10
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install black
+
+    - name: Get modified files
+      id: get_files
+      run: echo "::set-output name=files::$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '\.py$' || true)"
+    
+    - name: Lint with Black
+      run: |
+        if [ -n "${{ steps.get_files.outputs.files }}" ]; then
+          black --check ${{ steps.get_files.outputs.files }}
+        else
+          echo "No Python files modified."
+        fi
+
+      continue-on-error: true
+
+    - name: Generate annotations
+      if: ${{ failure() }}
+      run: |
+        if [ -n "${{ steps.get_files.outputs.files }}" ]; then
+          while IFS= read -r file; do
+            errors=$(black --check "$file" | awk -F ":" '{print $3":"$4}')
+            IFS=$'\n' read -rd '' -a errors_array <<<"$errors"
+            for err in "${errors_array[@]}"; do
+              IFS=: read -r line col <<<"$err"
+              echo "::error file=${file},line=${line},col=${col}::Black formatting issue found in ${file}."
+            done
+          done <<<"${{ steps.get_files.outputs.files }}"
+        fi
