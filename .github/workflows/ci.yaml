@@ -30,4 +30,4 @@ jobs:
       - name: Run linter
         if: ${{ steps.filter.outputs.py_scripts_filter == 'true' }}
         run: |
-          black --check --diff "${{ steps.filter.outputs.py_scripts_filter_files
+          black --check --diff "${{ steps.filter.outputs.py_scripts_filter_files}}
