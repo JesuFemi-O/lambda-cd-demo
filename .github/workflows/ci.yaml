@@ -49,16 +49,26 @@ jobs:
         if: ${{ steps.filter.outputs.py_scripts_filter == 'true' }}
         run: |
           # Check if there are linting errors and create annotations
-          for lint_var in FLAKE8_OUTPUT BLACK_OUTPUT ISORT_OUTPUT; do
-            eval "lint_output=\"\${{ env.${lint_var} }}\""
-            if [ -n "$lint_output" ]; then
-              # Convert CSV to multiline format for annotation
-              lint_output_lines=$(echo "$lint_output" | jq -r -c '. | split(",") | join("\n")')
-              echo "::error file=${{ steps.filter.outputs.py_scripts_filter_files }}::${lint_output_lines}"
-            fi
-          done
+
+          # FLAKE8 linting
+          if [ -n "${FLAKE8_OUTPUT}" ]; then
+            lint_output_lines=$(echo "${FLAKE8_OUTPUT}" | jq -r -c '. | split(",") | join("\n")')
+            echo "::error file=${{ steps.filter.outputs.py_scripts_filter_files }}::${lint_output_lines}"
+          fi
+
+          # BLACK linting
+          if [ -n "${BLACK_OUTPUT}" ]; then
+            black_output_lines=$(echo "${BLACK_OUTPUT}" | jq -r -c '. | split(",") | join("\n")')
+            echo "::error file=${{ steps.filter.outputs.py_scripts_filter_files }}::${black_output_lines}"
+          fi
+
+          # ISORT linting
+          if [ -n "${ISORT_OUTPUT}" ]; then
+            isort_output_lines=$(echo "${ISORT_OUTPUT}" | jq -r -c '. | split(",") | join("\n")')
+            echo "::error file=${{ steps.filter.outputs.py_scripts_filter_files }}::${isort_output_lines}"
+          fi
 
           # Fail the job if there are any errors
-          if [ -n "${{ env.FLAKE8_OUTPUT }}" ] || [ -n "${{ env.BLACK_OUTPUT }}" ] || [ -n "${{ env.ISORT_OUTPUT }}" ]; then
+          if [ -n "${FLAKE8_OUTPUT}" ] || [ -n "${BLACK_OUTPUT}" ] || [ -n "${ISORT_OUTPUT}" ]; then
             exit 1
           fi
