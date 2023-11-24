@@ -41,7 +41,7 @@ jobs:
       continue-on-error: true
 
     - name: Generate annotations
-      if: failure()
+      if: success() || failure()
       run: |
         for file in ${{ steps.get_files_to_lint.outputs.all_changed_files }}; do
           errors=$(black --check "$file" | awk -F ":" '{print $3":"$4}')
