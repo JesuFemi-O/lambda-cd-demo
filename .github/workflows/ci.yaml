@@ -50,7 +50,7 @@ jobs:
         run: |
           # Check if there are linting errors and create annotations
           for lint_var in FLAKE8_OUTPUT BLACK_OUTPUT ISORT_OUTPUT; do
-            lint_output="${{ env[${lint_var}] }}"
+            eval "lint_output=\"\${{ env.${lint_var} }}\""
             if [ -n "$lint_output" ]; then
               # Convert CSV to multiline format for annotation
               lint_output_lines=$(echo "$lint_output" | jq -r -c '. | split(",") | join("\n")')
