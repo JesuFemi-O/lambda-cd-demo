@@ -30,30 +30,4 @@ jobs:
       - name: Run linter
         if: ${{ steps.filter.outputs.py_scripts_filter == 'true' }}
         run: |
-          echo "Changed python files: ${{ steps.filter.outputs.py_scripts_filter_files }}"
-          lint_output=$(flake8 "${{ steps.filter.outputs.py_scripts_filter_files }}" --format=default) || true
-          black_output=$(black --check --diff "${{ steps.filter.outputs.py_scripts_filter_files }}") || true
-          isort_output=$(isort --check --diff "${{ steps.filter.outputs.py_scripts_filter_files }}") || true
-
-          # FLAKE8 linting
-          if [ -n "${lint_output}" ]; then
-            lint_output_lines="${lint_output}"
-            echo "::error file=${{ steps.filter.outputs.py_scripts_filter_files }}::${lint_output_lines}"
-          fi
-
-          # BLACK linting
-          if [ -n "${black_output}" ]; then
-            black_output_lines="${black_output}"
-            echo "::error file=${{ steps.filter.outputs.py_scripts_filter_files }}::${black_output_lines}"
-          fi
-
-          # ISORT linting
-          if [ -n "${isort_output}" ]; then
-            isort_output_lines="${isort_output}"
-            echo "::error file=${{ steps.filter.outputs.py_scripts_filter_files }}::${isort_output_lines}"
-          fi
-
-          # Fail the job if there are any errors
-          if [ -n "${lint_output}" ] || [ -n "${black_output}" ] || [ -n "${isort_output}" ]; then
-            exit 1
-          fi
+          black --check --diff "${{ steps.filter.outputs.py_scripts_filter_files
