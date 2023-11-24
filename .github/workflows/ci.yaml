@@ -22,9 +22,9 @@ jobs:
         python -m pip install --upgrade pip
         pip install black
     
-    - name: Get changed python files between base and head
-      run: >
-        echo "CHANGED_FILES=$(echo $(git diff --name-only ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} -- | grep \.py))" >> $GITHUB_ENV
+    # - name: Get changed python files between base and head
+    #   run: >
+    #     echo "CHANGED_FILES=$(echo $(git diff --name-only ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} -- | grep \.py))" >> $GITHUB_ENV
     
     - name: Get changed files
       id: get_files_to_lint
@@ -35,8 +35,10 @@ jobs:
     
     - name: Lint with Black
       if: steps.get_files_to_lint.outputs.any_changed == 'true'
+      shell: bash -l {0}
       run: |
         chmod +x ci-checks.sh
+        echo "changed files: ${{ steps.get_files_to_lint.outputs.all_changed_files }}"
         ./ci-checks.sh ${{ steps.get_files_to_lint.outputs.all_changed_files }}
 
     #   continue-on-error: true
