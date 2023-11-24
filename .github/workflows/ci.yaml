@@ -31,3 +31,4 @@ jobs:
         if: ${{ steps.filter.outputs.py_scripts_filter == 'true' }}
         run: |
           black --check --diff "${{ steps.filter.outputs.py_scripts_filter_files}}"
+          python -m flakeheaven lint ${{ steps.filter.outputs.py_scripts_filter_files }}
