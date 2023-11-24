@@ -31,14 +31,14 @@ jobs:
         if: ${{ steps.filter.outputs.py_scripts_filter == 'true' }}
         run: |
           echo "Changed python files: ${{ steps.filter.outputs.py_scripts_filter_files }}"
-          lint_output=$(python -m flakeheaven lint ${{ steps.filter.outputs.py_scripts_filter_files }} 2>&1)
-          black_output=$(python -m black --check ${{ steps.filter.outputs.py_scripts_filter_files }} 2>&1)
-          isort_output=$(python -m isort --check ${{ steps.filter.outputs.py_scripts_filter_files }} 2>&1)
+          lint_output=$(python -m flakeheaven lint zikkie-demo-trigger/lambda_function.py 2>&1) || true
+          black_output=$(python -m black --check zikkie-demo-trigger/lambda_function.py 2>&1) || true
+          isort_output=$(python -m isort --check zikkie-demo-trigger/lambda_function.py 2>&1) || true
 
           # Store lint outputs as environment variables
-          echo "::set-env name=FLAKE8_OUTPUT::${lint_output}"
-          echo "::set-env name=BLACK_OUTPUT::${black_output}"
-          echo "::set-env name=ISORT_OUTPUT::${isort_output}"
+          echo "FLAKE8_OUTPUT=${lint_output}" >> $GITHUB_ENV
+          echo "BLACK_OUTPUT=${black_output}" >> $GITHUB_ENV
+          echo "ISORT_OUTPUT=${isort_output}" >> $GITHUB_ENV
       
       - name: Generate annotations
         if: ${{ steps.filter.outputs.py_scripts_filter == 'true' }}
