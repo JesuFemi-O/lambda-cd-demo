@@ -35,6 +35,11 @@ jobs:
           black_output=$(python -m black --check zikkie-demo-trigger/lambda_function.py 2>&1) || true
           isort_output=$(python -m isort --check zikkie-demo-trigger/lambda_function.py 2>&1) || true
 
+          # Debugging: Print linting outputs
+          echo "FLAKE8_OUTPUT=${lint_output}"
+          echo "BLACK_OUTPUT=${black_output}"
+          echo "ISORT_OUTPUT=${isort_output}"
+
           # Store lint outputs as environment variables
           echo "FLAKE8_OUTPUT=${lint_output}" >> $GITHUB_ENV
           echo "BLACK_OUTPUT=${black_output}" >> $GITHUB_ENV
