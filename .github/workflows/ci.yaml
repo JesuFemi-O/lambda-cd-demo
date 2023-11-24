@@ -21,15 +21,16 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install black
-
-    - name: Get modified files
-      id: get_files
-      run: echo "files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '\.py$' || true)" >> $GITHUB_ENV
+    
+    - name: Get changed python files between base and head
+        run: >
+          echo "CHANGED_FILES=$(echo $(git diff --name-only ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} -- | grep \.py))" >> $GITHUB_ENV
     
     - name: Lint with Black
+      if: ${{ env.CHANGED_FILES }}
       run: |
-        if [ -n "$files" ]; then
-          black --check $files
+        if [ -n "${{ env.CHANGED_FILES }}" ]; then
+          black --check "${{ env.CHANGED_FILES }}"
         else
           echo "No Python files modified."
         fi
@@ -37,15 +38,15 @@ jobs:
       continue-on-error: true
 
     - name: Generate annotations
-      if: ${{ failure() }}
+      if: failure()
       run: |
-        if [ -n "$files" ]; then
-          while IFS= read -r file; do
+        if [ -n "${{ env.CHANGED_FILES }}" ]; then
+          for file in ${{ env.CHANGED_FILES }}; do
             errors=$(black --check "$file" | awk -F ":" '{print $3":"$4}')
             IFS=$'\n' read -rd '' -a errors_array <<<"$errors"
             for err in "${errors_array[@]}"; do
               IFS=: read -r line col <<<"$err"
               echo "::error file=${file},line=${line},col=${col}::Black formatting issue found in ${file}."
             done
-          done <<<"${{ steps.get_files.outputs.files }}"
+          done
         fi
