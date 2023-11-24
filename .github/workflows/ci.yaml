@@ -52,19 +52,19 @@ jobs:
 
           # FLAKE8 linting
           if [ -n "${FLAKE8_OUTPUT}" ]; then
-            lint_output_lines=$(echo "${FLAKE8_OUTPUT}" | jq -r -c '. | split(",") | join("\n")')
+            lint_output_lines="${FLAKE8_OUTPUT}"
             echo "::error file=${{ steps.filter.outputs.py_scripts_filter_files }}::${lint_output_lines}"
           fi
 
           # BLACK linting
           if [ -n "${BLACK_OUTPUT}" ]; then
-            black_output_lines=$(echo "${BLACK_OUTPUT}" | jq -r -c '. | split(",") | join("\n")')
+            black_output_lines="${BLACK_OUTPUT}"
             echo "::error file=${{ steps.filter.outputs.py_scripts_filter_files }}::${black_output_lines}"
           fi
 
           # ISORT linting
           if [ -n "${ISORT_OUTPUT}" ]; then
-            isort_output_lines=$(echo "${ISORT_OUTPUT}" | jq -r -c '. | split(",") | join("\n")')
+            isort_output_lines="${ISORT_OUTPUT}"
             echo "::error file=${{ steps.filter.outputs.py_scripts_filter_files }}::${isort_output_lines}"
           fi
 
