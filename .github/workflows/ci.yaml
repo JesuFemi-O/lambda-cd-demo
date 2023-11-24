@@ -31,9 +31,9 @@ jobs:
         if: ${{ steps.filter.outputs.py_scripts_filter == 'true' }}
         run: |
           echo "Changed python files: ${{ steps.filter.outputs.py_scripts_filter_files }}"
-          lint_output_formatted=$(echo "${lint_output}" | jq -s -R @csv)
-          black_output_formatted=$(echo "${black_output}" | jq -s -R @csv)
-          isort_output_formatted=$(echo "${isort_output}" | jq -s -R @csv)
+          lint_output=$(flake8 "${{ steps.filter.outputs.py_scripts_filter_files }}" --format=default)
+          black_output=$(black --check --diff "${{ steps.filter.outputs.py_scripts_filter_files }}")
+          isort_output=$(isort --check --diff "${{ steps.filter.outputs.py_scripts_filter_files }}")
 
           # Debugging: Print linting outputs
           echo "FLAKE8_OUTPUT=${lint_output}"
