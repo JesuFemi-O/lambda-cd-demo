@@ -5,53 +5,32 @@ on:
     types: [ opened, reopened, synchronize, edited ]
 
 jobs:
-  lint:
+  flake8-lint:
     runs-on: ubuntu-latest
-
+    name: python linters
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
-
-    - name: Set up Python
-      uses: actions/setup-python@v3
-      with:
-        python-version: 3.10.9
-
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install black
-    
-    # - name: Get changed python files between base and head
-    #   run: >
-    #     echo "CHANGED_FILES=$(echo $(git diff --name-only ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} -- | grep \.py))" >> $GITHUB_ENV
-    
-    - name: Get changed files
-      id: get_files_to_lint
-      uses: tj-actions/changed-files@v35
-      with:
-        files: |
-          */*.py
-    
-    - name: Lint with Black
-      if: steps.get_files_to_lint.outputs.any_changed == 'true'
-      shell: bash -l {0}
-      run: |
-        chmod +x ci-checks.sh
-        echo "changed files: ${{ steps.get_files_to_lint.outputs.all_changed_files }}"
-        ./ci-checks.sh ${{ steps.get_files_to_lint.outputs.all_changed_files }}
-
-    #   continue-on-error: true
-
-    # - name: Generate annotations
-    #   if: success() || failure()
-    #   run: |
-    #     for file in ${{ steps.get_files_to_lint.outputs.all_changed_files }}; do
-    #       errors=$(black --check "$file" | awk -F ":" '{print $3":"$4}')
-    #       IFS=$'\n' read -rd '' -a errors_array <<<"$errors"
-    #       for err in "${errors_array[@]}"; do
-    #         IFS=: read -r line col <<<"$err"
-    #         echo "::error file=${file},line=${line},col=${col}::Black formatting issue found in ${file}."
-    #       done
-    #     done
-
+      - name: Check out source repository
+        uses: actions/checkout@v3
+      - name: Set up Python environment
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.8
+      - name: Install linter dependencies
+        run: |
+          python -m pip install pip==22.2.2
+          pip install -r requirements-lint.txt
+      - name: Check for python file changes
+        uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          list-files: 'shell'
+          filters: |
+            py_scripts_filter:
+              - added|modified: '**/*.py'
+      - name: Run linter
+        if: ${{ steps.filter.outputs.py_scripts_filter == 'true' }}
+        run: |
+          echo "Changed python files: ${{ steps.filter.outputs.py_scripts_filter_files }}"
+          python -m flakeheaven lint ${{ steps.filter.outputs.py_scripts_filter_files }}
+          python -m black --check ${{ steps.filter.outputs.py_scripts_filter_files }}
+          python -m isort --check ${{ steps.filter.outputs.py_scripts_filter_files }}

@@ -2,8 +2,8 @@ import json
 import requests
 import urllib.parse
 
+
 def lambda_handler(event, context):
-    
     print(f"executing lambda for payload: {event}")
     bucket = event["Records"][0]["s3"]["bucket"]["name"]
     key = urllib.parse.unquote_plus(
