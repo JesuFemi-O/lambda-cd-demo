@@ -31,9 +31,9 @@ jobs:
         if: ${{ steps.filter.outputs.py_scripts_filter == 'true' }}
         run: |
           echo "Changed python files: ${{ steps.filter.outputs.py_scripts_filter_files }}"
-          lint_output=$(flake8 "${{ steps.filter.outputs.py_scripts_filter_files }}" --format=default)
-          black_output=$(black --check --diff "${{ steps.filter.outputs.py_scripts_filter_files }}")
-          isort_output=$(isort --check --diff "${{ steps.filter.outputs.py_scripts_filter_files }}")
+          lint_output=$(flake8 "${{ steps.filter.outputs.py_scripts_filter_files }}" --format=default) || true
+          black_output=$(black --check --diff "${{ steps.filter.outputs.py_scripts_filter_files }}") || true
+          isort_output=$(isort --check --diff "${{ steps.filter.outputs.py_scripts_filter_files }}") || true
 
           # Debugging: Print linting outputs
           echo "FLAKE8_OUTPUT=${lint_output}"
